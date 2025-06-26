@@ -1,5 +1,16 @@
+# Core dependencies optimized for performance
 Flask==2.3.3
+Werkzeug==2.3.7
+
+# Image processing - optimized version
 Pillow==10.0.1
-numpy==1.21.6
-tflite-runtime==2.10.0
+
+# Numerical computing - optimized
+numpy==1.24.3
+
+# TensorFlow Lite Runtime (much smaller and faster than full TensorFlow)
+tflite-runtime==2.13.0
+
+# WSGI server for production
 gunicorn==21.2.0
+

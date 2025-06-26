@@ -1,71 +1,368 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dog Classifier</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐶 Dog Classifier</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f4f7f9;
-            padding: 40px;
-            text-align: center;
-        }
-        h2 {
-            color: #333;
-        }
-        form {
-            background: #fff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
             display: inline-block;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            margin-bottom: 20px;
         }
-        input[type="file"] {
-            padding: 10px;
-            margin: 10px 0;
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
         }
-        button {
-            background: #4CAF50;
+
+        .file-input-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
             color: white;
             border: none;
-            padding: 10px 18px;
-            border-radius: 5px;
+            padding: 15px 40px;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            margin-top: 15px;
         }
-        button:hover {
-            background: #45a049;
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
         }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .result {
-            margin-top: 20px;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border: 2px dashed #ddd;
         }
+
         .result img {
-            max-width: 300px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+
+        .prediction-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
             margin-bottom: 10px;
         }
-        .prediction-text {
-            font-size: 20px;
-            font-weight: bold;
-            color: #222;
+
+        .confidence-text {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .processing-time {
+            font-size: 14px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #ffcdd2;
+        }
+
+        .file-info {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(33, 150, 243, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #1976D2;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>🐶 Dog Classifier</h1>
+        
+        <form method="post" enctype="multipart/form-data" action="/predict" id="uploadForm">
+            <div class="upload-section">
+                <div class="file-input-wrapper">
+                    <input type="file" name="file" id="fileInput" class="file-input" accept="image/*" required>
+                    <label for="fileInput" class="file-input-button">
+                        📁 Choose Image File
+                    </label>
+                </div>
+                
+                <div id="fileInfo" class="file-info" style="display: none;"></div>
+                
+                <div class="loading" id="loadingDiv">
+                    <div class="spinner"></div>
+                    <p>Processing your image...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🔍 Classify Image
+                </button>
+            </div>
+        </form>
 
-    <h2>🐶 Dog Classifier</h2>
+        {% if error_message %}
+        <div class="error">
+            <strong>Error:</strong> {{ error_message }}
+        </div>
+        {% endif %}
 
-    <form method="post" enctype="multipart/form-data" action="/post">
-        <input type="file" name="file" accept="image/*" required><br>
-        <button type="submit">Predict</button>
-    </form>
-
-    {% if prediction %}
-    <div class="result">
-        <img src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Uploaded Image">
-        <div class="prediction-text">Prediction: {{ prediction }}</div>
+        {% if prediction %}
+        <div class="result">
+            <img src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Uploaded Image">
+            <div class="prediction-text">{{ prediction }}</div>
+            {% if confidence %}
+            <div class="confidence-text">Confidence: {{ confidence }}</div>
+            {% endif %}
+            {% if processing_time %}
+            <div class="processing-time">Processing time: {{ processing_time }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const uploadForm = document.getElementById('uploadForm');
+            const loadingDiv = document.getElementById('loadingDiv');
+            const submitBtn = document.getElementById('submitBtn');
+            const progressFill = document.getElementById('progressFill');
+
+            // File input change handler
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file type
+                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Please select a valid image file (JPEG, PNG, GIF, BMP, WebP)');
+                        fileInput.value = '';
+                        fileInfo.style.display = 'none';
+                        return;
+                    }
+
+                    // Validate file size (5MB limit)
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    if (file.size > maxSize) {
+                        alert('File size must be less than 5MB');
+                        fileInput.value = '';
+                        fileInfo.style.display = 'none';
+                        return;
+                    }
+
+                    // Show file info
+                    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                    fileInfo.innerHTML = `
+                        <strong>Selected:</strong> ${file.name}<br>
+                        <strong>Size:</strong> ${fileSize} MB<br>
+                        <strong>Type:</strong> ${file.type}
+                    `;
+                    fileInfo.style.display = 'block';
+                } else {
+                    fileInfo.style.display = 'none';
+                }
+            });
+
+            // Form submit handler
+            uploadForm.addEventListener('submit', function(e) {
+                const file = fileInput.files[0];
+                if (!file) {
+                    e.preventDefault();
+                    alert('Please select an image file first');
+                    return;
+                }
+
+                // Show loading animation
+                loadingDiv.style.display = 'block';
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '⏳ Processing...';
+
+                // Simulate progress (since we can't track real upload progress easily)
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 90) progress = 90;
+                    progressFill.style.width = progress + '%';
+                }, 200);
+
+                // Clean up on form completion
+                setTimeout(() => {
+                    clearInterval(progressInterval);
+                    progressFill.style.width = '100%';
+                }, 5000);
+            });
+
+            // Drag and drop functionality
+            const container = document.querySelector('.container');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                container.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                container.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                container.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                container.style.background = 'rgba(255, 255, 255, 0.98)';
+                container.style.transform = 'scale(1.02)';
+            }
+
+            function unhighlight(e) {
+                container.style.background = 'rgba(255, 255, 255, 0.95)';
+                container.style.transform = 'scale(1)';
+            }
+
+            container.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    fileInput.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    </script>
 </body>
 </html>
